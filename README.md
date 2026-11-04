@@ -1,5 +1,7 @@
 # Scientific Workflow Control Plane
 
+[![CI](https://github.com/ylc22/scientific-workflow-control-plane/actions/workflows/ci.yml/badge.svg)](https://github.com/ylc22/scientific-workflow-control-plane/actions/workflows/ci.yml)
+
 A production-style demo for orchestrating scientific compute jobs with a clean API, retries, persistence, observability, and an operator dashboard.
 
 This project is intentionally not another model-training notebook. It demonstrates the engineering layer around scientific workloads: how jobs are submitted, tracked, retried, audited, and surfaced to users.
