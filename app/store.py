@@ -143,3 +143,19 @@ class JobStore:
                 (job_id, now, f"attempt={current.attempt + 1}"),
             )
         return self.get(job_id)
+
+    def cancel(self, job_id: str) -> JobRecord:
+        current = self.get(job_id)
+        if current.status not in {"queued", "running"}:
+            raise ValueError("only queued or running jobs can be cancelled")
+        now = utcnow()
+        with self._conn() as conn:
+            conn.execute(
+                "UPDATE jobs SET status='cancelled', updated_at=? WHERE id=?",
+                (now, job_id),
+            )
+            conn.execute(
+                "INSERT INTO events (job_id, ts, event, detail) VALUES (?, ?, 'cancel_requested', ?)",
+                (job_id, now, f"previous_status={current.status}"),
+            )
+        return self.get(job_id)
