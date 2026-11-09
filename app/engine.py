@@ -11,9 +11,17 @@ def run_job(job_id: str, store: JobStore, metrics: Metrics, step_delay: float = 
     store.set_status(job_id, "running", "started", f"attempt={job.attempt}")
 
     for step in STEPS:
+        job = store.get(job_id)
+        if job.status == "cancelled":
+            metrics.inc("jobs_cancelled")
+            return
+
         store.set_status(job_id, "running", "step_started", step)
         time.sleep(step_delay)
         job = store.get(job_id)
+        if job.status == "cancelled":
+            metrics.inc("jobs_cancelled")
+            return
         if job.fail_step == step:
             store.set_status(job_id, "failed", "step_failed", step)
             metrics.inc("jobs_failed")
