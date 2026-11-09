@@ -18,6 +18,7 @@ This repo models that problem with synthetic workflows so it can be run locally 
 - SQLite-backed persistent job state
 - idempotency keys for safe repeated submissions
 - retry handling for failed jobs
+- cancellation for queued/running jobs with event audit history
 - structured event history for each job
 - lightweight operational metrics
 - Streamlit operator dashboard
@@ -51,6 +52,7 @@ flowchart LR
 | `GET` | `/jobs` | list recent jobs |
 | `GET` | `/jobs/{job_id}` | inspect one job and its event history |
 | `POST` | `/jobs/{job_id}/retry` | retry a failed job |
+| `POST` | `/jobs/{job_id}/cancel` | cancel a queued or running job |
 | `GET` | `/metrics` | operational counters |
 
 ## Quickstart
@@ -96,6 +98,10 @@ Clients can submit an `Idempotency-Key`. Repeating the same request with the sam
 ### Retry behavior
 
 Failed jobs can be retried through the API. The retry creates a new attempt while preserving the original event history for auditability.
+
+### Cancellation
+
+Queued and running jobs can be cancelled through the API. Cancellation is persisted as a terminal `cancelled` state and recorded in the event history. The workflow engine checks cancellation state between steps so work stops cleanly instead of continuing to publish results.
 
 ### Persistence
 
@@ -147,7 +153,7 @@ docker run --rm -p 8000:8000 scientific-control-plane
 - cloud object storage for artifacts
 - Nextflow or nf-core execution adapters
 - webhook callbacks
-- cancellation and timeouts
+- timeouts and distributed cancellation signals
 - per-tenant quotas
 - deployment manifests for Kubernetes
 

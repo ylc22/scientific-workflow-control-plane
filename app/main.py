@@ -63,6 +63,17 @@ def create_app(db_path: str | None = None) -> FastAPI:
         background_tasks.add_task(run_job, job.id, store, metrics)
         return job
 
+    @app.post("/jobs/{job_id}/cancel", response_model=JobRecord)
+    def cancel_job(job_id: str) -> JobRecord:
+        try:
+            job = store.cancel(job_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail="job not found") from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        metrics.inc("job_cancellations")
+        return job
+
     @app.get("/metrics")
     def get_metrics() -> dict:
         jobs = store.list(200)

@@ -45,6 +45,24 @@ with right:
                 use_container_width=True,
                 hide_index=True,
             )
+            cancellable = [j for j in jobs if j["status"] in {"queued", "running"}]
+            if cancellable:
+                selected = st.selectbox(
+                    "Cancel a job",
+                    [j["id"] for j in cancellable],
+                    format_func=lambda job_id: next(
+                        f"{j['workflow']} · {j['sample_id']} · {job_id[:8]}"
+                        for j in cancellable
+                        if j["id"] == job_id
+                    ),
+                )
+                if st.button("Cancel selected job"):
+                    r = requests.post(f"{API}/jobs/{selected}/cancel", timeout=10)
+                    if r.status_code == 200:
+                        st.success(f"Cancelled {selected}")
+                        st.rerun()
+                    else:
+                        st.error(r.json().get("detail", "Cancellation failed"))
         else:
             st.info("No jobs yet")
     except Exception as exc:
