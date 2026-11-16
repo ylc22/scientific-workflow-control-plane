@@ -161,6 +161,8 @@ docker run --rm -p 8000:8000 scientific-control-plane
 
 This is a small reference implementation of the engineering work around scientific compute: turning workflows into a reliable product surface with APIs, persistence, failure handling, metrics, and an operator experience.
 
+For the AI application layer, see [Biomed Evidence Engine](https://github.com/ylc22/biomed-evidence-engine), which focuses on retrieval, grounded synthesis, evaluation, citations, abstention, and observability.
+
 ## License
 
 MIT
