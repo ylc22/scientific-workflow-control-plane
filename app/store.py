@@ -8,6 +8,15 @@ from typing import Iterator, Optional
 from .models import JobCreate, JobEvent, JobRecord
 
 
+_ALLOWED_TRANSITIONS = {
+    "queued": {"running", "cancelled"},
+    "running": {"running", "failed", "succeeded", "cancelled"},
+    "failed": set(),
+    "succeeded": set(),
+    "cancelled": set(),
+}
+
+
 def utcnow() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -117,6 +126,13 @@ class JobStore:
         return [self.get(r["id"]) for r in rows]
 
     def set_status(self, job_id: str, status: str, event: str, detail: str) -> None:
+        current = self.get(job_id)
+        allowed = _ALLOWED_TRANSITIONS.get(current.status, set())
+        if status not in allowed:
+            raise ValueError(
+                f"invalid job status transition: {current.status} -> {status}"
+            )
+
         now = utcnow()
         with self._conn() as conn:
             conn.execute(
